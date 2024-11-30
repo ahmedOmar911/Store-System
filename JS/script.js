@@ -31,22 +31,36 @@ displayProducts(allProducts);
 
 // Declare Adding Product Function
 function addProduct() {
-    // 1) Get all entered values --> put them in an object
-    var product = {
-        productName: productName.value,
-        productPrice: productPrice.value,
-        productCategory: productCategory.value,
-        productImage: `../imgs/${productImage.files[0].name}`,
-        productDescription: productDescription.value
+    // Convert the image to Base64
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        var base64Image = event.target.result;
+
+        // Create the product object
+        var product = {
+            productName: productName.value,
+            productPrice: productPrice.value,
+            productCategory: productCategory.value,
+            productImage: base64Image, // Store Base64 data
+            productDescription: productDescription.value
+        };
+
+        // Add the product to the list
+        allProducts.push(product);
+
+        // Save to local storage
+        localStorage.setItem("allProducts", JSON.stringify(allProducts));
+
+        // Clear form and refresh display
+        clearForm();
+        displayProducts(allProducts);
     };
-    // 2.0) Add this object to an array of products
-    allProducts.push(product);
-    // 2.1) Add this object to the local storage of the browser
-    localStorage.setItem("allProducts", JSON.stringify(allProducts));
-    // 3) clearing the form
-    clearForm();
-    // 4) Displaying products
-    displayProducts(allProducts);
+
+    if (productImage.files[0]) {
+        reader.readAsDataURL(productImage.files[0]);
+    } else {
+        alert("Please select an image!");
+    }
 }
 
 
@@ -128,27 +142,47 @@ function setForm(index) {
 
 
 function updateProduct() {
-    // Retrieve the new image if a file is selected
-    var newImage = productImage.files[0] ? `../imgs/${productImage.files[0].name}` : allProducts[updateIndex].productImage;
-    // Create the updated product object
-    var product = {
-        productName: productName.value,
-        productPrice: productPrice.value,
-        productCategory: productCategory.value,
-        productImage: newImage, // Use the new image if selected, or retain the old one
-        productDescription: productDescription.value
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        var base64Image = event.target.result;
+
+        // Update the product object
+        allProducts[updateIndex] = {
+            productName: productName.value,
+            productPrice: productPrice.value,
+            productCategory: productCategory.value,
+            productImage: base64Image || allProducts[updateIndex].productImage, // Use new or existing image
+            productDescription: productDescription.value
+        };
+
+        // Save to local storage
+        localStorage.setItem("allProducts", JSON.stringify(allProducts));
+
+        // Refresh display and reset form
+        displayProducts(allProducts);
+        clearForm();
+        addBtn.classList.remove("d-none");
+        updateBtn.classList.add("d-none");
     };
-    // Update the product in the array
-    allProducts[updateIndex] = product;
-    // Update local storage
-    localStorage.setItem("allProducts", JSON.stringify(allProducts));
-    // Display new data
-    displayProducts(allProducts);
-    // Clear the form
-    clearForm();
-    // Reset the buttons
-    addBtn.classList.remove("d-none");
-    updateBtn.classList.add("d-none");
+
+    if (productImage.files[0]) {
+        reader.readAsDataURL(productImage.files[0]);
+    } else {
+        // Update without changing the image
+        allProducts[updateIndex].productName = productName.value;
+        allProducts[updateIndex].productPrice = productPrice.value;
+        allProducts[updateIndex].productCategory = productCategory.value;
+        allProducts[updateIndex].productDescription = productDescription.value;
+
+        // Save changes
+        localStorage.setItem("allProducts", JSON.stringify(allProducts));
+
+        // Refresh display and reset form
+        displayProducts(allProducts);
+        clearForm();
+        addBtn.classList.remove("d-none");
+        updateBtn.classList.add("d-none");
+    }
 }
 
 // Declate a function to validate user's input
